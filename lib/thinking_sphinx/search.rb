@@ -640,10 +640,20 @@ module ThinkingSphinx
     end
 
     def conditions_as_query
-      return '' if @options[:conditions].blank?
+      conditions = @options[:conditions]
+      ranges = ThinkingSphinx::Configuration.
+        instance.index_options[:charset_table].split(',').map(&:strip)
 
-      ' ' + @options[:conditions].keys.collect { |key|
-        "@#{key} #{options[:conditions][key]}"
+      binding.pry
+
+      conditions.each do |key, value|
+
+      end
+
+      return '' if conditions.blank?
+
+      ' ' + conditions.keys.collect { |key|
+        "@#{key} #{Riddle.escape(conditions[key])}"
       }.join(' ')
     end
 

@@ -124,12 +124,15 @@ module ThinkingSphinx
       parse_config
       self.version ||= @controller.sphinx_version
 
+      parse_charset_table
+
       ThinkingSphinx::Attribute::SphinxTypeMappings.merge!(
         :string => :sql_attr_string
       ) if Riddle.loaded_version.to_i > 1
 
       self
     end
+
 
     def self.environment
       @@environment ||= if defined?(Merb)
@@ -315,6 +318,14 @@ module ThinkingSphinx
         self.index_options[:enable_star]    = true
         self.index_options[:min_prefix_len] = 1
       end
+    end
+
+    def parse_charset_table
+      return unless table = self.index_options[:charset_table]
+      rows = table.split(',').map do |row|
+        row.strip if row.length > 1
+      end
+
     end
 
     def set_sphinx_setting(object, key, value, allowed = {})
