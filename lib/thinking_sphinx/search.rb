@@ -634,7 +634,7 @@ module ThinkingSphinx
 
     def query
       @query ||= begin
-        q = @args.join(' ') << conditions_as_query
+        q = Riddle.escape(@args.join(' ')) << conditions_as_query
         (options[:star] ? star_query(q) : q).strip
       end
     end
@@ -646,7 +646,7 @@ module ThinkingSphinx
       ranges = ThinkingSphinx::Configuration.
         instance.index_options[:charset_table].split(',').map(&:strip)
 
-      return '@@relaxed @nosuchfield 0' if conditions.blank? || conditions.none? do |key, value|
+      return ' @@relaxed @nosuchfield 0' if conditions.blank? || conditions.none? do |key, value|
         ranges.any? { |range| range.include? value }
       end
 
