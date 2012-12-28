@@ -426,7 +426,6 @@ module ThinkingSphinx
         retry_on_stale_index do
           begin
             log query do
-              binding.pry
               @results = client.query query, indexes, comment
             end
             total = @results[:total_found].to_i
