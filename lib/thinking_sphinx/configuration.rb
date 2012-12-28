@@ -63,6 +63,11 @@ module ThinkingSphinx
     } - %w( source prefix_fields infix_fields )
     CustomOptions = %w( disable_range use_64_bit )
 
+    DEFAULT_CHARSET_TABLES = {
+      "utf-8" => "0..9, A..Z->a..z, _, a..z, U+410..U+42F->U+430..U+44F, U+430..U+44F",
+      "sbcs" => "0..9, A..Z->a..z, _, a..z, U+A8->U+B8, U+B8, U+C0..U+DF->U+E0..U+FF, U+E0..U+FF"
+    }
+
     attr_accessor :searchd_file_path, :allow_star, :app_root,
       :model_directories, :delayed_job_priority, :indexed_models, :use_64_bit,
       :touched_reindex_file, :stop_timeout, :version, :shuffle,
@@ -70,7 +75,7 @@ module ThinkingSphinx
 
     attr_accessor :source_options, :index_options
 
-    attr_reader :configuration, :controller
+    attr_reader :configuration, :controller, :allowed_char_ranges
 
     @@environment = nil
 
@@ -124,7 +129,7 @@ module ThinkingSphinx
       parse_config
       self.version ||= @controller.sphinx_version
 
-      parse_charset_table
+      set_allowed_char_ranges
 
       ThinkingSphinx::Attribute::SphinxTypeMappings.merge!(
         :string => :sql_attr_string
@@ -291,6 +296,10 @@ module ThinkingSphinx
       false
     end
 
+    def allowed_char_ranges
+      @allowed_char_ranges ||= set_allowed_char_ranges
+    end
+
     private
 
     # Parse the config/sphinx.yml file - if it exists - then use the attribute
@@ -320,12 +329,23 @@ module ThinkingSphinx
       end
     end
 
-    def parse_charset_table
-      return unless table = self.index_options[:charset_table]
+    def set_allowed_char_ranges
+      table = self.index_options[:charset_table] || DEFAULT_CHARSET_TABLES[self.index_options[:charset_type]]
       rows = table.split(',').map do |row|
-        row.strip if row.length > 1
-      end
+        row.strip!
+        next ' ' if row == ' '
+        next row unless row.length > 1 || row == ' '
 
+        row = row.split('->')[0].split('..').map do |char|
+          if match_data = char.match(/U\+(?<char_code>\w+)/)
+            match_data['char_code'].to_i(16).chr('utf-8')
+           else
+            char
+          end
+        end
+
+        row.size > 1 ? (row[0]..row[1]) : row[0]
+      end
     end
 
     def set_sphinx_setting(object, key, value, allowed = {})

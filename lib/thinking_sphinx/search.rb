@@ -426,6 +426,7 @@ module ThinkingSphinx
         retry_on_stale_index do
           begin
             log query do
+              binding.pry
               @results = client.query query, indexes, comment
             end
             total = @results[:total_found].to_i
@@ -641,16 +642,14 @@ module ThinkingSphinx
 
     def conditions_as_query
       conditions = @options[:conditions]
+      return '' if conditions.blank?
+
       ranges = ThinkingSphinx::Configuration.
         instance.index_options[:charset_table].split(',').map(&:strip)
 
-      binding.pry
-
-      conditions.each do |key, value|
-
+      return '@@relaxed @nosuchfield 0' if conditions.blank? || conditions.none? do |key, value|
+        ranges.any? { |range| range.include? value }
       end
-
-      return '' if conditions.blank?
 
       ' ' + conditions.keys.collect { |key|
         "@#{key} #{Riddle.escape(conditions[key])}"
