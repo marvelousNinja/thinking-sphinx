@@ -64,8 +64,8 @@ module ThinkingSphinx
     CustomOptions = %w( disable_range use_64_bit )
 
     DEFAULT_CHARSET_TABLES = {
-      "utf-8" => "0..9, A..Z->a..z, _, a..z, U+410..U+42F->U+430..U+44F, U+430..U+44F",
-      "sbcs" => "0..9, A..Z->a..z, _, a..z, U+A8->U+B8, U+B8, U+C0..U+DF->U+E0..U+FF, U+E0..U+FF"
+      'utf-8' => "0..9, A..Z->a..z, _, a..z, U+410..U+42F->U+430..U+44F, U+430..U+44F",
+      'sbcs' => "0..9, A..Z->a..z, _, a..z, U+A8->U+B8, U+B8, U+C0..U+DF->U+E0..U+FF, U+E0..U+FF"
     }
 
     attr_accessor :searchd_file_path, :allow_star, :app_root,
@@ -333,8 +333,7 @@ module ThinkingSphinx
       table = self.index_options[:charset_table] || DEFAULT_CHARSET_TABLES[self.index_options[:charset_type]]
       rows = table.split(',').map do |row|
         row.strip!
-        next ' ' if row == ' '
-        next row unless row.length > 1 || row == ' '
+        next row unless row.length > 1
 
         row = row.split('->')[0].split('..').map do |char|
           if match_data = char.match(/U\+(?<char_code>\w+)/)

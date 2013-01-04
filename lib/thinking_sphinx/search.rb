@@ -642,8 +642,7 @@ module ThinkingSphinx
       conditions = @options[:conditions]
       return '' if conditions.blank?
 
-      ranges = ThinkingSphinx::Configuration.
-        instance.index_options[:charset_table].split(',').map(&:strip)
+      ranges = ThinkingSphinx::Configuration.instance.allowed_char_ranges
 
       return ' @@relaxed @nosuchfield 0' if conditions.none? do |key, value|
         value.each_char.any? do |char|
