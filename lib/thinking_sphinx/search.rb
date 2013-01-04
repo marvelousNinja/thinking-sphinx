@@ -644,7 +644,7 @@ module ThinkingSphinx
 
       ranges = ThinkingSphinx::Configuration.instance.allowed_char_ranges
 
-      return ' @@relaxed @nosuchfield 0' if conditions.none? do |key, value|
+      client.limit = 0 and return '' if conditions.none? do |key, value|
         value.each_char.any? do |char|
           ranges.none? { |range| range.include? char }
         end
