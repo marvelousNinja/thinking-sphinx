@@ -631,24 +631,35 @@ module ThinkingSphinx
       @one_class ||= classes.length != 1 ? nil : classes.first
     end
 
+    def no_allowed_chars?(*rows)
+      ranges = ThinkingSphinx::Configuration.instance.allowed_char_ranges
+      rows.any? do |row|
+        if row
+          row.each_char.all? do |char|
+            ranges.none? { |range| range.include? char }
+          end
+        else
+          false
+        end
+      end
+    end
+
     def query
       @query ||= begin
+        params = []
+        params += @args if @args
+        params += @options[:conditions].values if @options[:conditions]
+        params.delete_if { |p| p.to_s.empty? }
+
+        (options[:limit] = 0 and return '') if no_allowed_chars? *params
+
         q = Riddle.escape(@args.join(' ')) << conditions_as_query
         (options[:star] ? star_query(q) : q).strip
       end
     end
 
     def conditions_as_query
-      conditions = @options[:conditions]
-      return '' if conditions.blank?
-
-      ranges = ThinkingSphinx::Configuration.instance.allowed_char_ranges
-
-      client.limit = 0 and return '' if conditions.none? do |key, value|
-        value.each_char.any? do |char|
-          ranges.none? { |range| range.include? char }
-        end
-      end
+      return '' if (conditions = @options[:conditions]).blank?
 
       ' ' + conditions.keys.collect { |key|
         "@#{key} #{Riddle.escape(conditions[key])}"
