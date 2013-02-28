@@ -86,13 +86,7 @@ module ThinkingSphinx
     private
 
     def execute(command, output_error = false)
-      if RUBY_PLATFORM == 'java'
-        connection.transaction do
-          execute_command command, output_error
-        end
-      else
-        execute_command command, output_error
-      end
+      execute_command command, output_error
     end
 
     def execute_command(command, output_error = false)
@@ -175,10 +169,7 @@ module ThinkingSphinx
     end
 
     def server_version
-      if RUBY_PLATFORM == 'java'
-        (connection.raw_connection.connection.server_major_version * 10000) +
-        (connection.raw_connection.connection.server_minor_version * 100)
-      elsif connection.raw_connection.respond_to?(:server_version)
+      if connection.raw_connection.respond_to?(:server_version)
         connection.raw_connection.server_version
       else
         0
