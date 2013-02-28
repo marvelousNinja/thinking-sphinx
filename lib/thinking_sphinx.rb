@@ -278,7 +278,7 @@ module ThinkingSphinx
   end
 
   def self.jruby?
-    defined?(JRUBY_VERSION)
+    false#defined?(JRUBY_VERSION)
   end
 
   def self.mysql?
